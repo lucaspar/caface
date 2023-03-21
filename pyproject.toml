@@ -1,0 +1,39 @@
+[tool.poetry]
+    authors     = ["Lucas Parzianello <lucaspar@users.noreply.github.com>"]
+    description = ""
+    name        = "caface"
+    readme      = "README.md"
+    version     = "0.1.0"
+
+    [tool.poetry.dependencies]
+        einops            = "^0.6.0"
+        imgaug            = "^0.4.0"
+        omegaconf         = "^2.3.0"
+        pyrootutils       = "^1.0.4"
+        python            = "^3.10"
+        pytorch-lightning = "^2.0.0"
+        timm              = "^0.6.12"
+        tqdm              = "^4.65.0"
+    googledrivedownloader = "^0.4"
+    checksumdir = "^1.2.0"
+
+
+[build-system]
+    build-backend = "poetry.core.masonry.api"
+    requires      = ["poetry-core"]
+
+[tool.pytest.ini_options]
+    addopts        = ["--color=yes", "--durations=0", "--strict-markers", "--doctest-modules"]
+    filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
+    log_cli        = "True"
+    markers        = ["slow: slow tests"]
+    minversion     = "6.0"
+    testpaths      = "tests/"
+
+[tool.coverage.report]
+    exclude_lines = [
+        "pragma: nocover",
+        "raise NotImplementedError",
+        "raise NotImplementedError()",
+        "if __name__ == .__main__.:",
+    ]
