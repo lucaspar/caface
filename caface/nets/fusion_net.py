@@ -1,4 +1,3 @@
-import sys, os
 from nets.transformer import cluster_transformer
 
 

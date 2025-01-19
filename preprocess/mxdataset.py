@@ -1,7 +1,7 @@
 import numbers
 import mxnet as mx
 import os
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from torchvision import transforms
 import numpy as np
 import torch
@@ -171,7 +171,6 @@ class MXDataset(LabelConvertedMXFaceDataset):
             sample = self.transform(sample)
 
         # # must check that this correctly saves image color channel (cv2 assumes BGR color channel)
-        import cv2
         # cv2.imwrite('./temp.png', 255 * (0.5 * sample.transpose(0, 1).transpose(1, 2).numpy() + 0.5))
 
         return sample, target

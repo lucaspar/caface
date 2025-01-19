@@ -1,7 +1,6 @@
 import numpy as np
 from . import mtcnn
 from PIL import Image
-from scipy import misc
 
 
 class FaceAligner:

@@ -1,4 +1,3 @@
-import sys
 import pyrootutils
 import os
 

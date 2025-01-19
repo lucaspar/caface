@@ -1,19 +1,10 @@
 import os
-import torchvision.datasets as datasets
 
-import pytorch_lightning as pl
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
-from torchvision.transforms import functional as F
+from torch.utils.data import Dataset
 import numpy as np
 import torch
 from PIL import Image
-import cv2
-import pandas as pd
 
-import os
-import sys
-from dataset_helpers.insightface_ijb_helper import eval_helper_identification
 from dataset_helpers.insightface_ijb_helper import (
     eval_helper as eval_helper_verification,
 )

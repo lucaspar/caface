@@ -12,11 +12,7 @@ from torch.nn import Module
 
 import torch
 import torch.nn as nn
-from torch.nn import Conv2d, Linear
-from torch.nn import BatchNorm1d, BatchNorm2d
 from torch.nn import ReLU, Sigmoid
-from torch.nn import Module
-import numpy as np
 
 from torch.nn import PReLU
 

@@ -1,5 +1,4 @@
 import argparse
-import sys
 import os
 from time import gmtime, strftime
 import importlib

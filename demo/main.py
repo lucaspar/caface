@@ -16,7 +16,6 @@ sys.path.append(os.path.join(os.path.dirname(root), "caface"))
 import argparse
 
 import cv2
-import numpy as np
 import visualization
 from dataset import get_all_files, natural_sort, prepare_imagelist_dataloader, to_tensor
 from face_alignment.aligner import FaceAligner

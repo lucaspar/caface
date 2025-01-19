@@ -12,12 +12,10 @@ sys.path.append(os.path.dirname(root))
 sys.path.append(os.path.join(os.path.dirname(root), "caface"))
 
 import torch
-from torchvision import transforms
 from torch.utils.data import DataLoader
 import argparse
 from tqdm import tqdm
 from caface import model as model_module
-import torch
 from mxdataset import MXDataset
 
 

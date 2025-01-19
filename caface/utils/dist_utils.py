@@ -1,7 +1,6 @@
 import os
 import pickle
 import torch
-import functools
 import torch.distributed as dist
 
 

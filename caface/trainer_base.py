@@ -6,7 +6,7 @@ import os
 
 from utils import os_utils
 from utils import dist_utils
-from einops import rearrange, repeat
+from einops import rearrange
 import numpy as np
 from nets.aggregator import get_styledim
 

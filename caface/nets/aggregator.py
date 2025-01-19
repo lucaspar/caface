@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from einops import rearrange, repeat
+from einops import rearrange
 from nets.styler import StyleMergeLayer
 from nets.transformer import transformer_module
 
