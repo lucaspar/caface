@@ -20,9 +20,9 @@ class AveragePrecision(Metric):
     """
 
     __areas__ = {
-        "small": (0 ** 2, 32 ** 2),
-        "medium": (32 ** 2, 96 ** 2),
-        "large": (96 ** 2, math.inf),
+        "small": (0**2, 32**2),
+        "medium": (32**2, 96**2),
+        "large": (96**2, math.inf),
     }
 
     def __init__(self, iou_threshold: Union[List, float] = 0.5, area: str = None):

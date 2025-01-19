@@ -1,20 +1,22 @@
 import torch
 import torch.nn as nn
 from einops import rearrange
-from timm.models.layers import DropPath
+from timm.layers import DropPath
 import math
 
-class Attention(nn.Module):
 
-    def __init__(self,
-                 dim,
-                 num_heads,
-                 out_dim=None,
-                 qkv_bias=False,
-                 qk_scale=None,
-                 attn_drop=0.,
-                 proj_drop=0.,
-                 qkv_fuse=False):
+class Attention(nn.Module):
+    def __init__(
+        self,
+        dim,
+        num_heads,
+        out_dim=None,
+        qkv_bias=False,
+        qk_scale=None,
+        attn_drop=0.0,
+        proj_drop=0.0,
+        qkv_fuse=False,
+    ):
         super().__init__()
         if out_dim is None:
             out_dim = dim
@@ -34,9 +36,11 @@ class Attention(nn.Module):
         self.proj_drop = nn.Dropout(proj_drop)
 
     def extra_repr(self):
-        return f'num_heads={self.num_heads}, \n' \
-               f'qkv_bias={self.scale}, \n' \
-               f'qkv_fuse={self.qkv_fuse}'
+        return (
+            f"num_heads={self.num_heads}, \n"
+            f"qkv_bias={self.scale}, \n"
+            f"qkv_fuse={self.qkv_fuse}"
+        )
 
     def forward(self, query, key=None, *, value=None, mask=None):
         if self.qkv_fuse:
@@ -46,9 +50,17 @@ class Attention(nn.Module):
             B, N, C = x.shape
             S = N
             # [3, B, nh, N, C//nh]
-            qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+            qkv = (
+                self.qkv(x)
+                .reshape(B, N, 3, self.num_heads, C // self.num_heads)
+                .permute(2, 0, 3, 1, 4)
+            )
             # [B, nh, N, C//nh]
-            q, k, v = qkv[0], qkv[1], qkv[2]  # make torchscript happy (cannot use tensor as tuple)
+            q, k, v = (
+                qkv[0],
+                qkv[1],
+                qkv[2],
+            )  # make torchscript happy (cannot use tensor as tuple)
         else:
             B, N, C = query.shape
             if key is None:
@@ -57,11 +69,30 @@ class Attention(nn.Module):
                 value = key
             S = key.size(1)
             # [B, nh, N, C//nh]
-            q = rearrange(self.q_proj(query), 'b n (h c)-> b h n c', h=self.num_heads, b=B, n=N, c=C // self.num_heads)
+            q = rearrange(
+                self.q_proj(query),
+                "b n (h c)-> b h n c",
+                h=self.num_heads,
+                b=B,
+                n=N,
+                c=C // self.num_heads,
+            )
             # [B, nh, S, C//nh]
-            k = rearrange(self.k_proj(key), 'b n (h c)-> b h n c', h=self.num_heads, b=B, c=C // self.num_heads)
+            k = rearrange(
+                self.k_proj(key),
+                "b n (h c)-> b h n c",
+                h=self.num_heads,
+                b=B,
+                c=C // self.num_heads,
+            )
             # [B, nh, S, C//nh]
-            v = rearrange(self.v_proj(value), 'b n (h c)-> b h n c', h=self.num_heads, b=B, c=C // self.num_heads)
+            v = rearrange(
+                self.v_proj(value),
+                "b n (h c)-> b h n c",
+                h=self.num_heads,
+                b=B,
+                c=C // self.num_heads,
+            )
 
         # [B, nh, N, S]
         attn = (q @ k.transpose(-2, -1)) * self.scale
@@ -75,26 +106,34 @@ class Attention(nn.Module):
 
         # [B, nh, N, C//nh] -> [B, N, C]
         # out = (attn @ v).transpose(1, 2).reshape(B, N, C)
-        out = rearrange(attn @ v, 'b h n c -> b n (h c)', h=self.num_heads, b=B, n=N, c=C // self.num_heads)
+        out = rearrange(
+            attn @ v,
+            "b h n c -> b n (h c)",
+            h=self.num_heads,
+            b=B,
+            n=N,
+            c=C // self.num_heads,
+        )
         out = self.proj(out)
         out = self.proj_drop(out)
         return out
 
 
 class CrossAttnBlock(nn.Module):
-
-    def __init__(self,
-                 dim,
-                 num_heads,
-                 mlp_ratio=4.,
-                 qkv_bias=False,
-                 qk_scale=None,
-                 drop=0.,
-                 attn_drop=0.,
-                 drop_path=0.,
-                 act_layer=nn.GELU,
-                 norm_layer=nn.LayerNorm,
-                 post_norm=False):
+    def __init__(
+        self,
+        dim,
+        num_heads,
+        mlp_ratio=4.0,
+        qkv_bias=False,
+        qk_scale=None,
+        drop=0.0,
+        attn_drop=0.0,
+        drop_path=0.0,
+        act_layer=nn.GELU,
+        norm_layer=nn.LayerNorm,
+        post_norm=False,
+    ):
         super().__init__()
         if post_norm:
             self.norm_post = norm_layer(dim)
@@ -105,23 +144,42 @@ class CrossAttnBlock(nn.Module):
             self.norm_k = norm_layer(dim)
             self.norm_post = nn.Identity()
         self.attn = Attention(
-            dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop)
-        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+            dim,
+            num_heads=num_heads,
+            qkv_bias=qkv_bias,
+            qk_scale=qk_scale,
+            attn_drop=attn_drop,
+            proj_drop=drop,
+        )
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
-        self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+        self.mlp = Mlp(
+            in_features=dim,
+            hidden_features=mlp_hidden_dim,
+            act_layer=act_layer,
+            drop=drop,
+        )
 
     def forward(self, query, key, *, mask=None):
         x = query
-        x = x + self.drop_path(self.attn(self.norm_q(query), self.norm_k(key), mask=mask))
+        x = x + self.drop_path(
+            self.attn(self.norm_q(query), self.norm_k(key), mask=mask)
+        )
         x = x + self.drop_path(self.mlp(self.norm2(x)))
         x = self.norm_post(x)
         return x
 
 
 class Mlp(nn.Module):
-
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+    def __init__(
+        self,
+        in_features,
+        hidden_features=None,
+        out_features=None,
+        act_layer=nn.GELU,
+        drop=0.0,
+    ):
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
@@ -140,7 +198,6 @@ class Mlp(nn.Module):
 
 
 class MixerMlp(Mlp):
-
     def forward(self, x):
         return super().forward(x.transpose(1, 2)).transpose(1, 2)
 
@@ -158,16 +215,20 @@ class MlpBlock(nn.Module):
 
 
 class MixerBlock(nn.Module):
-    def __init__(self,
-                 tokens_mlp_dim=16,
-                 channels_mlp_dim=1024,
-                 tokens_hidden_dim=32,
-                 channels_hidden_dim=1024,
-                 gated=False):
+    def __init__(
+        self,
+        tokens_mlp_dim=16,
+        channels_mlp_dim=1024,
+        tokens_hidden_dim=32,
+        channels_hidden_dim=1024,
+        gated=False,
+    ):
         super().__init__()
         self.ln = nn.LayerNorm(channels_mlp_dim)
         self.tokens_mlp_block = MlpBlock(tokens_mlp_dim, mlp_dim=tokens_hidden_dim)
-        self.channels_mlp_block = MlpBlock(channels_mlp_dim, mlp_dim=channels_hidden_dim)
+        self.channels_mlp_block = MlpBlock(
+            channels_mlp_dim, mlp_dim=channels_hidden_dim
+        )
         if gated:
             self.skip_connect_gate = nn.Parameter(torch.tensor(1.0))
         else:
@@ -190,18 +251,19 @@ class MixerBlock(nn.Module):
 
 
 class AttnBlock(nn.Module):
-
-    def __init__(self,
-                 dim,
-                 num_heads,
-                 mlp_ratio=4.,
-                 qkv_bias=False,
-                 qk_scale=None,
-                 drop=0.,
-                 attn_drop=0.,
-                 drop_path=0.,
-                 act_layer=nn.GELU,
-                 norm_layer=nn.LayerNorm):
+    def __init__(
+        self,
+        dim,
+        num_heads,
+        mlp_ratio=4.0,
+        qkv_bias=False,
+        qk_scale=None,
+        drop=0.0,
+        attn_drop=0.0,
+        drop_path=0.0,
+        act_layer=nn.GELU,
+        norm_layer=nn.LayerNorm,
+    ):
         super().__init__()
         self.norm1 = norm_layer(dim)
         self.attn = Attention(
@@ -211,11 +273,17 @@ class AttnBlock(nn.Module):
             qk_scale=qk_scale,
             attn_drop=attn_drop,
             proj_drop=drop,
-            qkv_fuse=True)
-        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+            qkv_fuse=True,
+        )
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
-        self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+        self.mlp = Mlp(
+            in_features=dim,
+            hidden_features=mlp_hidden_dim,
+            act_layer=act_layer,
+            drop=drop,
+        )
 
     def forward(self, x, mask=None):
         x = x + self.drop_path(self.attn(self.norm1(x), mask=mask))
@@ -223,9 +291,7 @@ class AttnBlock(nn.Module):
         return x
 
 
-
 class SinusoidalEncoding(nn.Module):
-
     def __init__(self, d_model: int, clip_val=3, clip_multi=10):
         super().__init__()
 
@@ -235,12 +301,14 @@ class SinusoidalEncoding(nn.Module):
         max_len = (clip_val * clip_multi * 2) + 1
 
         position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        div_term = torch.exp(
+            torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model)
+        )
         pe = torch.zeros(max_len, 1, d_model)
         pe[:, 0, 0::2] = torch.sin(position * div_term)
         pe[:, 0, 1::2] = torch.cos(position * div_term)
         pe = pe[:, 0, :]
-        self.register_buffer('pe', pe)
+        self.register_buffer("pe", pe)
 
         self.scale = nn.Parameter(torch.tensor(0.1))
 
@@ -249,11 +317,14 @@ class SinusoidalEncoding(nn.Module):
         Args:
             x: Tensor, shape [seq_len, batch_size, embedding_dim]
         """
-        B,T,_ = norms.shape
-        norm_norms = self.norm_bn(norms.transpose(-1,-2)).transpose(-1,-2)
-        norm_norms = torch.clip(norm_norms, -self.clip_val, self.clip_val) * self.clip_multi
-        select_index = ((norm_norms).long() + (self.clip_val * self.clip_multi)).view(-1)
+        _, T, _ = norms.shape
+        norm_norms = self.norm_bn(norms.transpose(-1, -2)).transpose(-1, -2)
+        norm_norms = (
+            torch.clip(norm_norms, -self.clip_val, self.clip_val) * self.clip_multi
+        )
+        select_index = ((norm_norms).long() + (self.clip_val * self.clip_multi)).view(
+            -1
+        )
         pe = self.pe[select_index]
-        pe = rearrange(pe, '(b t) c -> b t c', t=T)
+        pe = rearrange(pe, "(b t) c -> b t c", t=T)
         return self.scale * pe
-

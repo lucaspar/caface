@@ -11,7 +11,6 @@ def generate_uniform_boxes(
     wh_range: Tuple[float, float] = (0.2, 0.8),
     n: int = 100,
 ):
-
     # TODO pydoc
 
     cxcy = np.random.uniform(low=center_range[0], high=center_range[1], size=(n, 2))

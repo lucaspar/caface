@@ -27,8 +27,12 @@ def apply_conv2d(img: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     return nimg
 
 
-def get_gaussian_kernel(kernel_size: int, sigma: float = 1.0,
-        center_point: Tuple[float, float] = None, normalize: bool = True) -> np.ndarray:
+def get_gaussian_kernel(
+    kernel_size: int,
+    sigma: float = 1.0,
+    center_point: Tuple[float, float] = None,
+    normalize: bool = True,
+) -> np.ndarray:
     """Generates gaussian kernel using 2D gaussian distribution
 
     Args:
@@ -46,8 +50,12 @@ def get_gaussian_kernel(kernel_size: int, sigma: float = 1.0,
     if center_point is None:
         center_point = ((kernel_size - 1) / 2, (kernel_size - 1) / 2)
     center_point_x, center_point_y = center_point
-    kernel = np.exp(-0.5 * (np.square(xx - center_point_x) + np.square(yy - center_point_y)) / np.square(sigma))
+    kernel = np.exp(
+        -0.5
+        * (np.square(xx - center_point_x) + np.square(yy - center_point_y))
+        / np.square(sigma)
+    )
     if normalize:
-        kernel = kernel / (np.pi * 2 * sigma ** 2)
+        kernel = kernel / (np.pi * 2 * sigma**2)
         kernel /= kernel.sum()
     return kernel

@@ -23,9 +23,9 @@ def average_precision(
     Returns:
         torch.Tensor: average precision
     """
-    assert len(predictions) == len(
-        targets
-    ), "prediction and ground truths must be equal in lenght"
+    assert len(predictions) == len(targets), (
+        "prediction and ground truths must be equal in lenght"
+    )
     assert len(predictions) > 0, "given input list lenght must be greater than 0"
 
     table = generate_prediction_table(predictions, targets)

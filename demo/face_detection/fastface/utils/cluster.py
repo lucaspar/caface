@@ -16,15 +16,13 @@ class KMeans:
         self._best_distance_score = math.inf
 
     def fit(self, points: torch.Tensor):
-        assert (
-            len(points.shape) == 2
-        ), "shape length of the points \
-            must be 2 but found {}".format(
-            len(points.shape)
+        assert len(points.shape) == 2, (
+            "shape length of the points \
+            must be 2 but found {}".format(len(points.shape))
         )
-        assert isinstance(
-            points, torch.Tensor
-        ), "points must be torch.tensor but found {}".format(type(points))
+        assert isinstance(points, torch.Tensor), (
+            "points must be torch.tensor but found {}".format(type(points))
+        )
         sample_size = points.size(0)
         k = self._params.size(0)
 

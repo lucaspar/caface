@@ -118,9 +118,8 @@ class BaseDataset(Dataset):
         num_workers: int = 0,
         collate_fn=default_collate_fn,
         pin_memory: bool = False,
-        **kwargs
+        **kwargs,
     ):
-
         return DataLoader(
             self,
             batch_size=batch_size,
@@ -128,7 +127,7 @@ class BaseDataset(Dataset):
             num_workers=num_workers,
             collate_fn=collate_fn,
             pin_memory=pin_memory,
-            **kwargs
+            **kwargs,
         )
 
     def get_mean_std(self) -> Dict:
@@ -148,7 +147,7 @@ class BaseDataset(Dataset):
             mean_sq_sum[2] += np.mean(d[:, :, 2] ** 2)
 
         mean = mean_sum / len(self)
-        std = (mean_sq_sum / len(self) - mean ** 2) ** 0.5
+        std = (mean_sq_sum / len(self) - mean**2) ** 0.5
 
         return {"mean": mean.tolist(), "std": std.tolist()}
 
@@ -166,7 +165,7 @@ class BaseDataset(Dataset):
         return np.concatenate(normalized_boxes, axis=0)
 
     def get_box_scale_histogram(self) -> Tuple[np.ndarray, np.ndarray]:
-        bins = map(lambda x: 2 ** x, range(10))
+        bins = map(lambda x: 2**x, range(10))
         total_boxes = []
         for _, targets in tqdm(self, total=len(self), desc="getting box sizes"):
             if targets["target_boxes"].shape[0] == 0:
@@ -182,7 +181,6 @@ class BaseDataset(Dataset):
 
     def download(self, urls: List, target_dir: str):
         for k, v in urls.items():
-
             keys = list(v["check"].items())
             checked_keys = []
 

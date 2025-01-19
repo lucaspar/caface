@@ -52,9 +52,9 @@ def discover_archs() -> Generator:
         if os.path.isfile(file_path) or candidate == "__pycache__":
             continue
         module_path = os.path.join(file_path, "module.py")
-        assert os.path.isfile(
-            module_path
-        ), "cannot find: {}. {} must contain module.py".format(module_path, candidate)
+        assert os.path.isfile(module_path), (
+            "cannot find: {}. {} must contain module.py".format(module_path, candidate)
+        )
         yield (candidate, module_path)
 
 

@@ -134,7 +134,6 @@ class WiderFaceDataset(BaseDataset):
         transforms=None,
         **kwargs,
     ):
-
         source_dir = (
             get_data_cache_dir(suffix="widerface") if source_dir is None else source_dir
         )
@@ -142,25 +141,21 @@ class WiderFaceDataset(BaseDataset):
         # check if download
         self.download(self.__URLS__, source_dir)
 
-        assert os.path.exists(
-            source_dir
-        ), "given source directory for fddb is not exist at {}".format(source_dir)
-        assert (
-            phase is None or phase in WiderFaceDataset.__phases__
-        ), "given phase {} is not \
-            valid, must be one of: {}".format(
-            phase, WiderFaceDataset.__phases__
+        assert os.path.exists(source_dir), (
+            "given source directory for fddb is not exist at {}".format(source_dir)
+        )
+        assert phase is None or phase in WiderFaceDataset.__phases__, (
+            "given phase {} is not \
+            valid, must be one of: {}".format(phase, WiderFaceDataset.__phases__)
         )
 
         if not partitions:
             partitions = WiderFaceDataset.__partitions__
 
         for partition in partitions:
-            assert (
-                partition in WiderFaceDataset.__partitions__
-            ), "given partition {} is \
-                not in the defined list: {}".format(
-                partition, self.__partitions__
+            assert partition in WiderFaceDataset.__partitions__, (
+                "given partition {} is \
+                not in the defined list: {}".format(partition, self.__partitions__)
             )
 
         # TODO handle phase

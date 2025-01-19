@@ -30,7 +30,7 @@ class WiderFaceAP(Metric):
         preds: List[torch.Tensor],
         targets: List[torch.Tensor],
         ignore_flags: List[torch.Tensor] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Arguments:
@@ -155,7 +155,6 @@ class WiderFaceAP(Metric):
     def evaluate_single_image(
         self, preds: np.ndarray, gts: np.ndarray, ignore: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray]:
-
         N = preds.shape[0]
         M = gts.shape[0]
 
@@ -189,13 +188,11 @@ class WiderFaceAP(Metric):
     def calculate_image_pr(
         self, preds: np.ndarray, ignore_pred_mask: np.ndarray, match_counts: np.ndarray
     ) -> np.ndarray:
-
         pr = np.zeros((self.threshold_steps, 2), dtype=np.float32)
         thresholds = np.arange(0, self.threshold_steps, dtype=np.float32)
         thresholds = 1 - (thresholds + 1) / self.threshold_steps
 
         for i, threshold in enumerate(thresholds):
-
             (pos_ids,) = np.where(preds[:, 4] >= threshold)
             if len(pos_ids) == 0:
                 pr[i, 0] = 0

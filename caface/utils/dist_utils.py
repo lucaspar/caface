@@ -12,15 +12,18 @@ def is_dist_avail_and_initialized():
         return False
     return True
 
+
 def get_world_size():
     if not is_dist_avail_and_initialized():
         return 1
     return dist.get_world_size()
 
+
 def get_local_rank():
     if not is_dist_avail_and_initialized():
         return 0
     return int(os.environ["LOCAL_RANK"])
+
 
 def all_gather(data):
     """
@@ -42,7 +45,10 @@ def all_gather(data):
 
     # obtain Tensor size of each rank
     local_size = torch.tensor([tensor.numel()], device=torch.device("cuda", local_rank))
-    size_list = [torch.tensor([0], device=torch.device("cuda", local_rank)) for _ in range(world_size)]
+    size_list = [
+        torch.tensor([0], device=torch.device("cuda", local_rank))
+        for _ in range(world_size)
+    ]
     dist.all_gather(size_list, local_size)
     size_list = [int(size.item()) for size in size_list]
     max_size = max(size_list)
@@ -52,11 +58,17 @@ def all_gather(data):
     # gathering tensors of different shapes
     tensor_list = []
     for _ in size_list:
-        tensor_list.append(torch.empty((max_size,), dtype=torch.uint8,
-                            device=torch.device("cuda", local_rank)))
+        tensor_list.append(
+            torch.empty(
+                (max_size,), dtype=torch.uint8, device=torch.device("cuda", local_rank)
+            )
+        )
     if local_size != max_size:
-        padding = torch.empty(size=(max_size - local_size,), dtype=torch.uint8,
-                            device=torch.device("cuda", local_rank))
+        padding = torch.empty(
+            size=(max_size - local_size,),
+            dtype=torch.uint8,
+            device=torch.device("cuda", local_rank),
+        )
         tensor = torch.cat((tensor, padding), dim=0)
     dist.all_gather(tensor_list, tensor)
 

@@ -13,11 +13,11 @@ class BaseMXFeatureDataset(Dataset):
         super(BaseMXFeatureDataset, self).__init__()
         self.to_PIL = transforms.ToPILImage()
         self.root_dir = root_dir
-        path_imgrec = os.path.join(root_dir, 'train.rec')
-        path_imgidx = os.path.join(root_dir, 'train.idx')
-        path_imglst = os.path.join(root_dir, 'train.lst')
+        path_imgrec = os.path.join(root_dir, "train.rec")
+        path_imgidx = os.path.join(root_dir, "train.idx")
+        path_imglst = os.path.join(root_dir, "train.lst")
 
-        self.record = mx.recordio.MXIndexedRecordIO(path_imgidx, path_imgrec, 'r')
+        self.record = mx.recordio.MXIndexedRecordIO(path_imgidx, path_imgrec, "r")
         self.record_info = pd.DataFrame(list(read_list(path_imglst)))
         s = self.record.read_idx(0)
 
@@ -29,7 +29,7 @@ class BaseMXFeatureDataset(Dataset):
             self.imgidx = np.array(range(1, int(header.label[0])))
         else:
             self.imgidx = np.array(list(self.record.keys))
-        print('self.imgidx length', len(self.imgidx))
+        print("self.imgidx length", len(self.imgidx))
 
     def read_sample(self, index):
         idx = self.imgidx[index]
@@ -39,7 +39,7 @@ class BaseMXFeatureDataset(Dataset):
         if not isinstance(label, numbers.Number):
             label = label[0]
         label = torch.tensor(label, dtype=torch.long)
-        if '16' in self.root_dir:
+        if "16" in self.root_dir:
             sample = np.frombuffer(img, dtype=np.float16)
         else:
             sample = np.frombuffer(img, dtype=np.float32)
@@ -69,7 +69,7 @@ class BaseMXFeatureDataset(Dataset):
             sample = sample.reshape(16, 2336)
             sample = sample.astype(np.float32)
         else:
-            raise ValueError('not impleented feature')
+            raise ValueError("not impleented feature")
 
         sample = torch.tensor(sample)
         # feature, intermediates = torch.split(torch.tensor(sample), [512, 768], dim=1)
@@ -86,11 +86,7 @@ class BaseMXFeatureDataset(Dataset):
 
 
 class LabelConvertedMXFeatureDataset(BaseMXFeatureDataset):
-
-    def __init__(self,
-                 root_dir,
-                 rec_label_to_another_label=None
-                 ):
+    def __init__(self, root_dir, rec_label_to_another_label=None):
         # rec_label_to_another_label: dictionary converting record label to another label like torch ImageFolderLabel
         super(LabelConvertedMXFeatureDataset, self).__init__(root_dir=root_dir)
         if rec_label_to_another_label is None:
@@ -99,7 +95,9 @@ class LabelConvertedMXFeatureDataset(BaseMXFeatureDataset):
 
             # from record file label to folder name
             rec_label = self.record_info.label.tolist()
-            foldernames = self.record_info.path.apply(lambda x: x.split('/')[0]).tolist()
+            foldernames = self.record_info.path.apply(
+                lambda x: x.split("/")[0]
+            ).tolist()
             self.rec_to_folder = {}
             for i, j in zip(rec_label, foldernames):
                 self.rec_to_folder[i] = j
@@ -111,8 +109,9 @@ class LabelConvertedMXFeatureDataset(BaseMXFeatureDataset):
 
             # combine all
             for x in rec_label:
-                self.rec_label_to_another_label[x] = self.folder_to_num[self.rec_to_folder[x]]
-
+                self.rec_label_to_another_label[x] = self.folder_to_num[
+                    self.rec_to_folder[x]
+                ]
 
         else:
             self.rec_label_to_another_label = rec_label_to_another_label
@@ -128,11 +127,14 @@ class LabelConvertedMXFeatureDataset(BaseMXFeatureDataset):
 
 
 class FeatureMXDataset(LabelConvertedMXFeatureDataset):
-    def __init__(self,
-                 root_dir,
-                 rec_label_to_another_label=None,
-                 ):
-        super(FeatureMXDataset, self).__init__(root_dir, rec_label_to_another_label=rec_label_to_another_label)
+    def __init__(
+        self,
+        root_dir,
+        rec_label_to_another_label=None,
+    ):
+        super(FeatureMXDataset, self).__init__(
+            root_dir, rec_label_to_another_label=rec_label_to_another_label
+        )
 
     def __getitem__(self, index):
         aug_samples, target, record_label = self.read_sample(index)
@@ -145,18 +147,19 @@ class FeatureMXDataset(LabelConvertedMXFeatureDataset):
 
 
 class MultiAugMxFeatureDatasetV3(LabelConvertedMXFeatureDataset):
-    def __init__(self,
-                 root_dir,
-                 rec_label_to_another_label=None,
-                 num_images_per_identity=10,
-                 same_aug_prob=1.0,
-                 ):
-
-        super(MultiAugMxFeatureDatasetV3, self).__init__(root_dir,
-                                                         rec_label_to_another_label=rec_label_to_another_label)
+    def __init__(
+        self,
+        root_dir,
+        rec_label_to_another_label=None,
+        num_images_per_identity=10,
+        same_aug_prob=1.0,
+    ):
+        super(MultiAugMxFeatureDatasetV3, self).__init__(
+            root_dir, rec_label_to_another_label=rec_label_to_another_label
+        )
         self.num_images_per_identity = num_images_per_identity
         self.same_aug_prob = same_aug_prob
-        print('same_aug_prob: {}'.format(same_aug_prob))
+        print("same_aug_prob: {}".format(same_aug_prob))
 
     def get_augment_samples(self, sample, n):
         # aug_method = np.random.choice(['none', 'crop', 'photo', 'blur'])
@@ -166,10 +169,13 @@ class MultiAugMxFeatureDatasetV3(LabelConvertedMXFeatureDataset):
         return aug_samples
 
     def __getitem__(self, index, return_path=False):
-
         sample, target, record_label = self.read_sample(index)
-        same_label_images_info = self.record_info[self.record_info['label'] == record_label.item()]
-        extra_sample = same_label_images_info.sample(self.num_images_per_identity - 1, replace=True)
+        same_label_images_info = self.record_info[
+            self.record_info["label"] == record_label.item()
+        ]
+        extra_sample = same_label_images_info.sample(
+            self.num_images_per_identity - 1, replace=True
+        )
         extra_index = extra_sample.index.tolist()
 
         # split into two groups
@@ -181,10 +187,14 @@ class MultiAugMxFeatureDatasetV3(LabelConvertedMXFeatureDataset):
         for _ in range(2):
             num_iden = np.random.randint(1, max(half_point // 4, 3))
             iden_index = np.random.choice(all_index, num_iden)
-            split_points = np.random.choice(half_point - 2, num_iden - 1, replace=False) + 1
+            split_points = (
+                np.random.choice(half_point - 2, num_iden - 1, replace=False) + 1
+            )
             split_points.sort()
             split_points = split_points.tolist()
-            count_per_iden = np.array(split_points + [half_point]) - np.array([0] + split_points)
+            count_per_iden = np.array(split_points + [half_point]) - np.array(
+                [0] + split_points
+            )
             assert count_per_iden.sum() == half_point
             group_images = []
             for i_idx, count in zip(iden_index, count_per_iden):
@@ -214,9 +224,9 @@ def read_list(path_in):
             line = fin.readline()
             if not line:
                 break
-            line = [i.strip() for i in line.strip().split('\t')]
+            line = [i.strip() for i in line.strip().split("\t")]
             line_len = len(line)
             # check the data format of .lst file
             assert line_len == 3
-            item = {'idx': int(line[0]), "path": line[2], 'label': float(line[1])}
+            item = {"idx": int(line[0]), "path": line[2], "label": float(line[1])}
             yield item

@@ -4,7 +4,6 @@ import numpy as np
 
 
 def infer_features(dataloader, model, aggregator, hyper_param, device="cuda:0"):
-
     features = []
     norms = []
     intermediates = []

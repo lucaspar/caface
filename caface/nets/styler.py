@@ -13,9 +13,9 @@ class StyleMergeLayer(nn.Module):
         self.linear = nn.Linear(channel, outchannel)
         self.bn = nn.BatchNorm1d(outchannel)
 
-        setattr(self.cfc, 'srm_param', True)
-        setattr(self.bn.weight, 'srm_param', True)
-        setattr(self.bn.bias, 'srm_param', True)
+        setattr(self.cfc, "srm_param", True)
+        setattr(self.bn.weight, "srm_param", True)
+        setattr(self.bn.bias, "srm_param", True)
 
     def forward(self, style):
         z = style * self.cfc[None, :, :]  # B x C x 2
@@ -27,7 +27,6 @@ class StyleMergeLayer(nn.Module):
 
 
 class L2Norm(nn.Module):
-
     def __init__(self, dim=-1, eps=1e-5):
         super(L2Norm, self).__init__()
         self.dim = dim
@@ -35,5 +34,3 @@ class L2Norm(nn.Module):
 
     def forward(self, x):
         return x / (torch.norm(x, p=2, dim=self.dim, keepdim=True) + self.eps)
-
-

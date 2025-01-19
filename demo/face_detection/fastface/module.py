@@ -34,7 +34,6 @@ class FaceDetector(pl.LightningModule):
         mean: Union[float, List] = 0.0,
         std: Union[float, List] = 1.0,
     ):
-
         # preprocess
         if isinstance(mean, list):
             assert len(mean) == 3, "mean dimension must be 3 not {}".format(len(mean))
@@ -50,25 +49,19 @@ class FaceDetector(pl.LightningModule):
 
         self.register_buffer(
             "normalizer",
-            torch.tensor(255.0)
-            if normalized_input
-            else torch.tensor(1.0),  # pylint: disable=not-callable
+            torch.tensor(255.0) if normalized_input else torch.tensor(1.0),  # pylint: disable=not-callable
             persistent=False,
         )
 
         self.register_buffer(
             "mean",
-            torch.tensor(mean)
-            .view(-1, 1, 1)
-            .contiguous(),  # pylint: disable=not-callable
+            torch.tensor(mean).view(-1, 1, 1).contiguous(),  # pylint: disable=not-callable
             persistent=False,
         )
 
         self.register_buffer(
             "std",
-            torch.tensor(std)
-            .view(-1, 1, 1)
-            .contiguous(),  # pylint: disable=not-callable
+            torch.tensor(std).view(-1, 1, 1).contiguous(),  # pylint: disable=not-callable
             persistent=False,
         )
 
@@ -204,7 +197,6 @@ class FaceDetector(pl.LightningModule):
         iou_threshold: float = 0.4,
         keep_n: int = 200,
     ) -> torch.Tensor:
-
         # TODO pydoc
         batch_size = preds.size(0)
 
@@ -418,9 +410,9 @@ class FaceDetector(pl.LightningModule):
                 pl.LightningModule: fastface.FaceDetector instance with random weights initialization
         """
 
-        assert os.path.isfile(
-            yaml_file_path
-        ), "could not find the yaml file given {}".format(yaml_file_path)
+        assert os.path.isfile(yaml_file_path), (
+            "could not find the yaml file given {}".format(yaml_file_path)
+        )
         with open(yaml_file_path, "r") as foo:
             yaml_config = yaml.load(foo, Loader=yaml.FullLoader)
 
@@ -540,9 +532,9 @@ class FaceDetector(pl.LightningModule):
         Returns:
                 List[torch.Tensor]: list of torch.Tensor(C x H x W)
         """
-        assert isinstance(
-            images, (list, np.ndarray)
-        ), "give images must be eather list of numpy arrays or numpy array"
+        assert isinstance(images, (list, np.ndarray)), (
+            "give images must be eather list of numpy arrays or numpy array"
+        )
 
         if isinstance(images, np.ndarray):
             images = [images]
@@ -550,15 +542,13 @@ class FaceDetector(pl.LightningModule):
         batch: List[torch.Tensor] = []
 
         for img in images:
-            assert (
-                len(img.shape) == 3
-            ), "image shape must be channel, height\
-                , with length of 3 but found {}".format(
-                len(img.shape)
+            assert len(img.shape) == 3, (
+                "image shape must be channel, height\
+                , with length of 3 but found {}".format(len(img.shape))
             )
-            assert (
-                img.shape[2] == 3
-            ), "channel size of the image must be 3 but found {}".format(img.shape[2])
+            assert img.shape[2] == 3, (
+                "channel size of the image must be 3 but found {}".format(img.shape[2])
+            )
 
             batch.append(
                 # h,w,c => c,h,w

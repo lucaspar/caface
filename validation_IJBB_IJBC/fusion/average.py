@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def l2_normalize(x, axis=1, eps=1e-8):
     return x / (np.linalg.norm(x, axis=axis, keepdims=True) + eps)
 

@@ -26,9 +26,8 @@ class ModelWrapper(nn.Module):
 
 
 def load_caface(ckpt_path, device="cuda:0"):
-
     print("Loading {}".format(ckpt_path))
-    ckpt = torch.load(ckpt_path)
+    ckpt = torch.load(ckpt_path, weights_only=True)
     hparam = OmegaConf.create(ckpt["hyper_parameters"])
 
     # load backbone face recognition model

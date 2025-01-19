@@ -35,9 +35,9 @@ def download_pretrained_model(model: str, target_path: str = None) -> str:
         target_path = get_model_cache_dir()
     registry = get_registry()
     assert model in registry, f"given model: {model} is not in the registry"
-    assert os.path.exists(
-        target_path
-    ), f"given target path: {target_path} does not exists"
+    assert os.path.exists(target_path), (
+        f"given target path: {target_path} does not exists"
+    )
     assert os.path.isdir(target_path), "given target path must be directory not a file"
 
     adapter = registry[model]["adapter"]

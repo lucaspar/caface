@@ -24,11 +24,11 @@ def read_list(path_in):
             line = fin.readline()
             if not line:
                 break
-            line = [i.strip() for i in line.strip().split('\t')]
+            line = [i.strip() for i in line.strip().split("\t")]
             line_len = len(line)
             # check the data format of .lst file
             assert line_len == 3
-            item = {'idx': int(line[0]), "path": line[2], 'label': float(line[1])}
+            item = {"idx": int(line[0]), "path": line[2], "label": float(line[1])}
             yield item
 
 
@@ -37,11 +37,11 @@ class BaseMXDataset(Dataset):
         super(BaseMXDataset, self).__init__()
         self.to_PIL = transforms.ToPILImage()
         self.root_dir = root_dir
-        path_imgrec = os.path.join(root_dir, 'train.rec')
-        path_imgidx = os.path.join(root_dir, 'train.idx')
-        path_imglst = os.path.join(root_dir, 'train.lst')
+        path_imgrec = os.path.join(root_dir, "train.rec")
+        path_imgidx = os.path.join(root_dir, "train.idx")
+        path_imglst = os.path.join(root_dir, "train.lst")
 
-        self.record = mx.recordio.MXIndexedRecordIO(path_imgidx, path_imgrec, 'r')
+        self.record = mx.recordio.MXIndexedRecordIO(path_imgidx, path_imgrec, "r")
 
         # grad image index from the record and know how many images there are.
         # image index could be occasionally random order. like [4,3,1,2,0]
@@ -52,7 +52,7 @@ class BaseMXDataset(Dataset):
             self.imgidx = np.array(range(1, int(header.label[0])))
         else:
             self.imgidx = np.array(list(self.record.keys))
-        print('self.imgidx length', len(self.imgidx))
+        print("self.imgidx length", len(self.imgidx))
 
         if os.path.isfile(path_imglst):
             self.record_info = pd.DataFrame(list(read_list(path_imglst)))
@@ -65,13 +65,13 @@ class BaseMXDataset(Dataset):
                 s = self.record.read_idx(idx)
                 header, _ = mx.recordio.unpack(s)
                 label = header.label
-                row = {'idx': idx, 'path': '{}/name.jpg'.format(label), 'label': label}
+                row = {"idx": idx, "path": "{}/name.jpg".format(label), "label": label}
                 record_info.append(row)
             self.record_info = pd.DataFrame(record_info)
 
         self.swap_color_order = swap_color_order
         if self.swap_color_order:
-            print('[INFO] Train data in swap_color_order')
+            print("[INFO] Train data in swap_color_order")
 
     def read_sample(self, index):
         idx = self.imgidx[index]
@@ -83,7 +83,11 @@ class BaseMXDataset(Dataset):
         label = torch.tensor(label, dtype=torch.long)
         sample = mx.image.imdecode(img).asnumpy()
 
-        if self.swap_color_order or 'webface' in self.root_dir.lower() or self.insightface_trainrec:
+        if (
+            self.swap_color_order
+            or "webface" in self.root_dir.lower()
+            or self.insightface_trainrec
+        ):
             # swap rgb to bgr since image is in rgb for webface
             sample = Image.fromarray(np.asarray(sample)[:, :, ::-1])
         else:
@@ -99,21 +103,22 @@ class BaseMXDataset(Dataset):
 
 
 class LabelConvertedMXFaceDataset(BaseMXDataset):
-
-    def __init__(self,
-                 root_dir,
-                 swap_color_order=False,
-                 rec_label_to_another_label=None
-                 ):
+    def __init__(
+        self, root_dir, swap_color_order=False, rec_label_to_another_label=None
+    ):
         # rec_label_to_another_label: dictionary converting record label to another label like torch ImageFolderLabel
-        super(LabelConvertedMXFaceDataset, self).__init__(root_dir=root_dir, swap_color_order=swap_color_order)
+        super(LabelConvertedMXFaceDataset, self).__init__(
+            root_dir=root_dir, swap_color_order=swap_color_order
+        )
         if rec_label_to_another_label is None:
             # make one using path
             # image folder with 0/1.jpg
 
             # from record file label to folder name
             rec_label = self.record_info.label.tolist()
-            foldernames = self.record_info.path.apply(lambda x: x.split('/')[0]).tolist()
+            foldernames = self.record_info.path.apply(
+                lambda x: x.split("/")[0]
+            ).tolist()
             self.rec_to_folder = {}
             for i, j in zip(rec_label, foldernames):
                 self.rec_to_folder[i] = j
@@ -125,7 +130,9 @@ class LabelConvertedMXFaceDataset(BaseMXDataset):
 
             # combine all
             for x in rec_label:
-                self.rec_label_to_another_label[x] = self.folder_to_num[self.rec_to_folder[x]]
+                self.rec_label_to_another_label[x] = self.folder_to_num[
+                    self.rec_to_folder[x]
+                ]
 
         else:
             self.rec_label_to_another_label = rec_label_to_another_label
@@ -141,19 +148,22 @@ class LabelConvertedMXFaceDataset(BaseMXDataset):
 
 
 class MXDataset(LabelConvertedMXFaceDataset):
-    def __init__(self,
-                 root_dir,
-                 swap_color_order=False,
-                 ):
-        super(MXDataset, self).__init__(root_dir,
-                                        swap_color_order=swap_color_order,
-                                        rec_label_to_another_label=None)
+    def __init__(
+        self,
+        root_dir,
+        swap_color_order=False,
+    ):
+        super(MXDataset, self).__init__(
+            root_dir, swap_color_order=swap_color_order, rec_label_to_another_label=None
+        )
 
-        self.transform = transforms.Compose([
-            transforms.RandomHorizontalFlip(p=0.0),
-            transforms.ToTensor(),
-            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-        ])
+        self.transform = transforms.Compose(
+            [
+                transforms.RandomHorizontalFlip(p=0.0),
+                transforms.ToTensor(),
+                transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+            ]
+        )
 
     def __getitem__(self, index, skip_augment=False):
         sample, target, record_label = self.read_sample(index)

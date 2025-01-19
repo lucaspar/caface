@@ -57,7 +57,7 @@ class DIoULoss(torch.nn.Module):
         )
 
         # convex diagonal squared
-        c_square = enclosing_box_w ** 2 + enclosing_box_h ** 2
+        c_square = enclosing_box_w**2 + enclosing_box_h**2
 
         # squared euclidian distance between box centers
         input_cx = (input[:, 0] + input[:, 2]) / 2

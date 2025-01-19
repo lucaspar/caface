@@ -26,7 +26,6 @@ from model_loader import load_caface
 from tqdm import tqdm
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description="")
     parser.add_argument(
         "--ckpt_path",

@@ -1,12 +1,14 @@
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+
+matplotlib.use("Agg")
 import numpy as np
 import heapq
 import math
 
+
 def read_template_subject_id_list(path):
-    ijb_meta = np.loadtxt(path, dtype=str, skiprows=1, delimiter=',')
+    ijb_meta = np.loadtxt(path, dtype=str, skiprows=1, delimiter=",")
     templates = ijb_meta[:, 0].astype(np.int)
     subject_ids = ijb_meta[:, 1].astype(np.int)
     return templates, subject_ids
@@ -27,11 +29,9 @@ def read_template_pair_list(path):
     return t1, t2, label
 
 
-def index2template(img_feats=None,
-                           templates=None,
-                           medias=None,
-                           choose_templates=None,
-                           choose_ids=None):
+def index2template(
+    img_feats=None, templates=None, medias=None, choose_templates=None, choose_ids=None
+):
     # ==========================================================
     # 1. face image feature l2 normalization. img_feats:[number_image x feats_dim]
     # 2. compute media feature.
@@ -42,28 +42,24 @@ def index2template(img_feats=None,
     template_feats = {}
 
     for count_template, uqt in enumerate(unique_templates):
-        (ind_t, ) = np.where(templates == uqt)
+        (ind_t,) = np.where(templates == uqt)
         face_norm_feats = img_feats[ind_t]
         face_medias = medias[ind_t]
-        unique_medias, unique_media_counts = np.unique(face_medias,
-                                                       return_counts=True)
+        unique_medias, unique_media_counts = np.unique(face_medias, return_counts=True)
         media_norm_feats = []
         for u, ct in zip(unique_medias, unique_media_counts):
-            (ind_m, ) = np.where(face_medias == u)
-            media_norm_feats.extend(face_norm_feats[ind_m,0].tolist())
+            (ind_m,) = np.where(face_medias == u)
+            media_norm_feats.extend(face_norm_feats[ind_m, 0].tolist())
         media_norm_feats = np.array(media_norm_feats)
         template_feats[count_template] = media_norm_feats
         if count_template % 2000 == 0:
-            print('Finish Calculating {} template features.'.format(
-                count_template))
+            print("Finish Calculating {} template features.".format(count_template))
     return template_feats, unique_templates, unique_subjectids
 
 
-def image2template_feature(img_feats=None,
-                           templates=None,
-                           medias=None,
-                           choose_templates=None,
-                           choose_ids=None):
+def image2template_feature(
+    img_feats=None, templates=None, medias=None, choose_templates=None, choose_ids=None
+):
     # ==========================================================
     # 1. face image feature l2 normalization. img_feats:[number_image x feats_dim]
     # 2. compute media feature.
@@ -74,30 +70,26 @@ def image2template_feature(img_feats=None,
     template_feats = np.zeros((len(unique_templates), img_feats.shape[1]))
 
     for count_template, uqt in enumerate(unique_templates):
-        (ind_t, ) = np.where(templates == uqt)
+        (ind_t,) = np.where(templates == uqt)
         face_norm_feats = img_feats[ind_t]
         face_medias = medias[ind_t]
-        unique_medias, unique_media_counts = np.unique(face_medias,
-                                                       return_counts=True)
+        unique_medias, unique_media_counts = np.unique(face_medias, return_counts=True)
         media_norm_feats = []
         for u, ct in zip(unique_medias, unique_media_counts):
-            (ind_m, ) = np.where(face_medias == u)
+            (ind_m,) = np.where(face_medias == u)
             if ct == 1:
                 media_norm_feats += [face_norm_feats[ind_m]]
             else:  # image features from the same video will be aggregated into one feature
-                media_norm_feats += [
-                    np.mean(face_norm_feats[ind_m], 0, keepdims=True)
-                ]
+                media_norm_feats += [np.mean(face_norm_feats[ind_m], 0, keepdims=True)]
         media_norm_feats = np.array(media_norm_feats)
         # media_norm_feats = media_norm_feats / np.sqrt(np.sum(media_norm_feats ** 2, -1, keepdims=True))
         template_feats[count_template] = np.sum(media_norm_feats, 0)
         if count_template % 2000 == 0:
-            print('Finish Calculating {} template features.'.format(
-                count_template))
+            print("Finish Calculating {} template features.".format(count_template))
     template_norm_feats = template_feats / np.sqrt(
-        np.sum(template_feats**2, -1, keepdims=True))
+        np.sum(template_feats**2, -1, keepdims=True)
+    )
     return template_norm_feats, unique_templates, unique_subjectids
-
 
 
 def gen_mask(query_ids, reg_ids):
@@ -106,8 +98,8 @@ def gen_mask(query_ids, reg_ids):
         pos = [i for i, x in enumerate(reg_ids) if query_id == x]
         if len(pos) != 1:
             raise RuntimeError(
-                "RegIdsError with id = {}， duplicate = {} ".format(
-                    query_id, len(pos)))
+                "RegIdsError with id = {}， duplicate = {} ".format(query_id, len(pos))
+            )
         mask.append(pos[0])
     return mask
 
@@ -121,7 +113,7 @@ def evaluation(query_feats, gallery_feats, mask, return_index=False):
     gallery_num = gallery_feats.shape[0]
 
     similarity = np.dot(query_feats, gallery_feats.T)
-    print('similarity shape', similarity.shape)
+    print("similarity shape", similarity.shape)
     top_inds = np.argsort(-similarity)
     print(top_inds.shape)
 
@@ -170,14 +162,18 @@ def evaluation(query_feats, gallery_feats, mask, return_index=False):
     for far, pos in zip(Fars, required_topk):
         th = neg_sims[pos - 1]
         recall = np.sum(pos_sims > th) / query_num
-        print("far = {:.10f} pr = {:.10f} th = {:.10f}".format(
-            far, recall, th))
+        print("far = {:.10f} pr = {:.10f} th = {:.10f}".format(far, recall, th))
 
     if return_index:
         # return success index for top1
-        is_correct = top_inds[:,0] == mask
+        is_correct = top_inds[:, 0] == mask
         _, rank = np.where((top_inds == np.expand_dims(mask, -1)) == True)
         similarity_score_gt = similarity[np.arange(len(similarity)), mask]
 
-        return {"top1":top1, "top5":top5, "top10":top10}, is_correct, similarity_score_gt, rank
-    return {"top1":top1, "top5":top5, "top10":top10}
+        return (
+            {"top1": top1, "top5": top5, "top10": top10},
+            is_correct,
+            similarity_score_gt,
+            rank,
+        )
+    return {"top1": top1, "top5": top5, "top10": top10}

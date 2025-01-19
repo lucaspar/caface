@@ -8,7 +8,6 @@ from .blocks import LFFDBackboneV1, LFFDBackboneV2, LFFDHead
 
 
 class LFFD(nn.Module):
-
     __CONFIGS__ = {
         "original": {
             "input_shape": (-1, 3, 640, 640),
@@ -45,19 +44,19 @@ class LFFD(nn.Module):
         super().__init__()
 
         assert "input_shape" in config, "`input_shape` must be defined in the config"
-        assert (
-            "backbone_name" in config
-        ), "`backbone_name` must be defined in the config"
-        assert (
-            "head_infeatures" in config
-        ), "`head_infeatures` must be defined in the config"
-        assert (
-            "head_outfeatures" in config
-        ), "`head_outfeatures` must be defined in the config"
+        assert "backbone_name" in config, (
+            "`backbone_name` must be defined in the config"
+        )
+        assert "head_infeatures" in config, (
+            "`head_infeatures` must be defined in the config"
+        )
+        assert "head_outfeatures" in config, (
+            "`head_outfeatures` must be defined in the config"
+        )
         assert "rf_sizes" in config, "`rf_sizes` must be defined in the config"
-        assert (
-            "rf_start_offsets" in config
-        ), "`rf_start_offsets` must be defined in the config"
+        assert "rf_start_offsets" in config, (
+            "`rf_start_offsets` must be defined in the config"
+        )
         assert "rf_strides" in config, "`rf_strides` must be defined in the config"
         assert "scales" in config, "`scales` must be defined in the config"
 
@@ -328,7 +327,6 @@ class LFFD(nn.Module):
                 )
 
                 for gt_idx, (x1, y1, x2, y2) in enumerate(target_boxes):
-
                     match_mask = (
                         (x1 < rf_centers[:, :, 0]) & (x2 > rf_centers[:, :, 0])
                     ) & ((y1 < rf_centers[:, :, 1]) & (y2 > rf_centers[:, :, 1]))

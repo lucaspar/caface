@@ -24,15 +24,13 @@ class AverageRecall(Metric):
     def __init__(self, iou_threshold_min: float = 0.5, iou_threshold_max: float = 1.0):
         super().__init__(dist_sync_on_step=False, compute_on_step=False)
 
-        assert (
-            iou_threshold_max >= iou_threshold_min
-        ), "max value must be greater or equal than min value"
+        assert iou_threshold_max >= iou_threshold_min, (
+            "max value must be greater or equal than min value"
+        )
 
         if iou_threshold_max == iou_threshold_min:
             # single threshold
-            self.thresholds = torch.tensor(
-                [iou_threshold_max]
-            )  # pylint: disable=not-callable
+            self.thresholds = torch.tensor([iou_threshold_max])  # pylint: disable=not-callable
         else:
             # multi thresholds
             self.thresholds = torch.arange(iou_threshold_min, iou_threshold_max, 0.01)

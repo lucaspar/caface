@@ -17,16 +17,18 @@ class LFFDRandomSample:
         target_size: Tuple[int, int] = (640, 640),
         p: float = 0.5,
     ):
-        assert (
-            p >= 0 and p <= 1.0
-        ), "given `p` is not valid, must be between 0 and 1 but found: {}".format(p)
+        assert p >= 0 and p <= 1.0, (
+            "given `p` is not valid, must be between 0 and 1 but found: {}".format(p)
+        )
         self.scales = scales
         self.target_size = target_size  # W,H
         self.padding = Padding(target_size=target_size, pad_value=0)
         self.interpolate = Interpolate(target_size=target_size[0])
         self.p = p
 
-    def __call__(self, img: np.ndarray, targets: Dict = None) -> Tuple[np.ndarray, Dict]:
+    def __call__(
+        self, img: np.ndarray, targets: Dict = None
+    ) -> Tuple[np.ndarray, Dict]:
         """Randomly samples faces using given scales. All scales represents branches and
         for each branch selection probability is same.
 

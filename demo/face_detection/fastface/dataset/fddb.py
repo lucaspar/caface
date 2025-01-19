@@ -125,9 +125,8 @@ class FDDBDataset(BaseDataset):
         phase: str = None,
         folds: List[int] = None,
         transforms=None,
-        **kwargs
+        **kwargs,
     ):
-
         source_dir = (
             get_data_cache_dir(suffix="fddb") if source_dir is None else source_dir
         )
@@ -135,14 +134,12 @@ class FDDBDataset(BaseDataset):
         # check if download
         self.download(self.__URLS__, source_dir)
 
-        assert os.path.exists(
-            source_dir
-        ), "given source directory for fddb is not exist at {}".format(source_dir)
-        assert (
-            phase is None or phase in FDDBDataset.__phases__
-        ), "given phase {} is \
-            not valid, must be one of: {}".format(
-            phase, self.__phases__
+        assert os.path.exists(source_dir), (
+            "given source directory for fddb is not exist at {}".format(source_dir)
+        )
+        assert phase is None or phase in FDDBDataset.__phases__, (
+            "given phase {} is \
+            not valid, must be one of: {}".format(phase, self.__phases__)
         )
 
         if phase is None:
@@ -154,9 +151,9 @@ class FDDBDataset(BaseDataset):
         ids = []
         targets = []
         for fold_idx in folds:
-            assert (
-                fold_idx in self.__folds__
-            ), "given fold {} is not in the fold list".format(fold_idx)
+            assert fold_idx in self.__folds__, (
+                "given fold {} is not in the fold list".format(fold_idx)
+            )
             raw_ids, raw_targets = _load_single_annotation_fold(source_dir, fold_idx)
             ids += raw_ids
             # TODO each targets must be dict

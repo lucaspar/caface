@@ -9,20 +9,20 @@ import torch
 import os
 
 
-class MultipleAugmenter():
+class MultipleAugmenter:
     def __init__(self):
-
         self.augmenter = Augmenter()
 
-        self.transform = transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-        ])
+        self.transform = transforms.Compose(
+            [
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+            ]
+        )
 
     def make_aug_samples(self, path, num_aug=16):
-
-        assert os.path.isfile(path), 'no image file found'
+        assert os.path.isfile(path), "no image file found"
         img = cv2.imread(path)
         sample = Image.fromarray(img)
 
@@ -32,9 +32,8 @@ class MultipleAugmenter():
         return torch.stack(aug_tensors, dim=0)
 
 
-class Augmenter():
+class Augmenter:
     def __init__(self):
-
         self.geo_aug = GeometricAugmenter()
         self.photo_aug = PhotometricAugmenter()
         self.blur_aug = BlurAugmenter()
@@ -61,34 +60,36 @@ class Augmenter():
         all_augs = []
         strong_aug = self.strong_augment(sample)
         all_augs.append(strong_aug)
-        for _ in range(n-1):
+        for _ in range(n - 1):
             weak_aug = self.weak_augment(strong_aug)
             all_augs.append(weak_aug)
         return all_augs
 
     def get_random_augmenter(self):
-        aug_method = np.random.choice(['photo', 'blur', 'geo'])
-        if aug_method == 'photo':
+        aug_method = np.random.choice(["photo", "blur", "geo"])
+        if aug_method == "photo":
             augmenter = self.photo_aug
-        elif aug_method == 'blur':
+        elif aug_method == "blur":
             augmenter = self.blur_aug
-        elif aug_method == 'geo':
+        elif aug_method == "geo":
             augmenter = self.geo_aug
         else:
-            raise ValueError('not a correct aug')
+            raise ValueError("not a correct aug")
         return augmenter
 
 
-class NoAugment():
+class NoAugment:
     def __init__(self):
         pass
+
     def sample_param(self, sample):
         return None
+
     def augment(self, sample, param):
         return sample
 
-class GeometricAugmenter():
 
+class GeometricAugmenter:
     def __init__(self, crop_prob=0.5):
         self.crop_aug = CropAugmenter()
         self.affine_aug = AffineAugmenter()
@@ -96,15 +97,15 @@ class GeometricAugmenter():
         self.crop_prob = crop_prob
 
     def get_random_augmenter(self):
-        aug_method = np.random.choice(['crop', 'affine', 'rotate'])
-        if aug_method == 'crop':
+        aug_method = np.random.choice(["crop", "affine", "rotate"])
+        if aug_method == "crop":
             augmenter = self.crop_aug
-        elif aug_method == 'affine':
+        elif aug_method == "affine":
             augmenter = self.affine_aug
-        elif aug_method == 'rotate':
+        elif aug_method == "rotate":
             augmenter = self.rotate_aug
         else:
-            raise ValueError('not a correct aug')
+            raise ValueError("not a correct aug")
         return augmenter
 
     def sample_param(self, sample):
@@ -119,16 +120,17 @@ class GeometricAugmenter():
             aug, param = param
         return aug.augment(sample, param)
 
-class CropAugmenter():
+
+class CropAugmenter:
     def __init__(self):
-        self.random_resized_crop = transforms.RandomResizedCrop(size=(112, 112),
-                                                                scale=(0.2, 1.0),
-                                                                ratio=(0.75, 1.3333333333333333))
+        self.random_resized_crop = transforms.RandomResizedCrop(
+            size=(112, 112), scale=(0.2, 1.0), ratio=(0.75, 1.3333333333333333)
+        )
 
     def sample_param(self, sample):
-        i, j, h, w = self.random_resized_crop.get_params(sample,
-                                                         self.random_resized_crop.scale,
-                                                         self.random_resized_crop.ratio)
+        i, j, h, w = self.random_resized_crop.get_params(
+            sample, self.random_resized_crop.scale, self.random_resized_crop.ratio
+        )
         shift_x = 0
         shift_y = 0
         return i, j, h, w, shift_x, shift_y
@@ -140,12 +142,13 @@ class CropAugmenter():
 
         i, j, h, w, shift_x, shift_y = param
         cropped = F.crop(sample, i, j, h, w)
-        new[i:i+h, j:j+w, :] = np.array(cropped)
+        new[i : i + h, j : j + w, :] = np.array(cropped)
         sample = Image.fromarray(new.astype(np.uint8))
 
         return sample
 
-class AffineAugmenter():
+
+class AffineAugmenter:
     def __init__(self):
         pass
 
@@ -159,13 +162,14 @@ class AffineAugmenter():
         if param is None:
             param = self.sample_param(sample)
         zoom, trans_x, trans_y = param
-        affine = iaa.Affine(scale=zoom, translate_percent={'x':trans_x, 'y':trans_y})
+        affine = iaa.Affine(scale=zoom, translate_percent={"x": trans_x, "y": trans_y})
         affined_img = affine(image=np.array(sample))
         sample = Image.fromarray(affined_img.astype(np.uint8))
 
         return sample
 
-class RotateAugmenter():
+
+class RotateAugmenter:
     def __init__(self):
         pass
 
@@ -183,21 +187,31 @@ class RotateAugmenter():
         return sample
 
 
-class PhotometricAugmenter():
-
-    def __init__(self,):
-        self.photometric = transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0)
+class PhotometricAugmenter:
+    def __init__(
+        self,
+    ):
+        self.photometric = transforms.ColorJitter(
+            brightness=0.5, contrast=0.5, saturation=0.5, hue=0
+        )
 
     def sample_param(self, sample):
-        fn_idx, brightness_factor, contrast_factor, saturation_factor, hue_factor = \
-            self.photometric.get_params(self.photometric.brightness, self.photometric.contrast,
-                                        self.photometric.saturation, self.photometric.hue)
+        fn_idx, brightness_factor, contrast_factor, saturation_factor, hue_factor = (
+            self.photometric.get_params(
+                self.photometric.brightness,
+                self.photometric.contrast,
+                self.photometric.saturation,
+                self.photometric.hue,
+            )
+        )
         return fn_idx, brightness_factor, contrast_factor, saturation_factor, hue_factor
 
     def augment(self, sample, param=None):
         if param is None:
             param = self.sample_param(sample)
-        fn_idx, brightness_factor, contrast_factor, saturation_factor, hue_factor = param
+        fn_idx, brightness_factor, contrast_factor, saturation_factor, hue_factor = (
+            param
+        )
 
         for fn_id in fn_idx:
             if fn_id == 0 and brightness_factor is not None:
@@ -210,30 +224,39 @@ class PhotometricAugmenter():
         return sample
 
 
-class BlurAugmenter():
-
-    def __init__(self, ):
+class BlurAugmenter:
+    def __init__(
+        self,
+    ):
         pass
 
     def sample_param(self, sample):
-        blur_method = np.random.choice(['avg', 'gaussian', 'motion', 'resize'])
-        if blur_method == 'avg':
+        blur_method = np.random.choice(["avg", "gaussian", "motion", "resize"])
+        if blur_method == "avg":
             k = np.random.randint(1, 10)
             param = [blur_method, k]
-        elif blur_method == 'gaussian':
+        elif blur_method == "gaussian":
             sigma = np.random.random() * 4
             param = [blur_method, sigma]
-        elif blur_method == 'motion':
+        elif blur_method == "motion":
             k = np.random.randint(5, 20)
             angle = np.random.randint(-45, 45)
             direction = np.random.random() * 2 - 1
             param = [blur_method, k, angle, direction]
-        elif blur_method == 'resize':
+        elif blur_method == "resize":
             side_ratio = np.random.uniform(0.2, 1.0)
-            interpolation = np.random.choice([cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_AREA, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4])
+            interpolation = np.random.choice(
+                [
+                    cv2.INTER_NEAREST,
+                    cv2.INTER_LINEAR,
+                    cv2.INTER_AREA,
+                    cv2.INTER_CUBIC,
+                    cv2.INTER_LANCZOS4,
+                ]
+            )
             param = [blur_method, side_ratio, interpolation]
         else:
-            raise ValueError('not a correct blur')
+            raise ValueError("not a correct blur")
 
         return param
 
@@ -241,23 +264,27 @@ class BlurAugmenter():
         if param is None:
             param = self.sample_param(sample)
         blur_method = param[0]
-        if blur_method == 'avg':
+        if blur_method == "avg":
             blur_method, k = param
-            avg_blur = iaa.AverageBlur(k=k) # max 10
+            avg_blur = iaa.AverageBlur(k=k)  # max 10
             blurred = avg_blur(image=np.array(sample))
-        elif blur_method == 'gaussian':
+        elif blur_method == "gaussian":
             blur_method, sigma = param
-            gaussian_blur = iaa.GaussianBlur(sigma=sigma) # 4 is max
+            gaussian_blur = iaa.GaussianBlur(sigma=sigma)  # 4 is max
             blurred = gaussian_blur(image=np.array(sample))
-        elif blur_method == 'motion':
+        elif blur_method == "motion":
             blur_method, k, angle, direction = param
-            motion_blur = iaa.MotionBlur(k=k, angle=angle, direction=direction)  # k 20 max angle:-45 45, dir:-1 1
+            motion_blur = iaa.MotionBlur(
+                k=k, angle=angle, direction=direction
+            )  # k 20 max angle:-45 45, dir:-1 1
             blurred = motion_blur(image=np.array(sample))
-        elif blur_method == 'resize':
+        elif blur_method == "resize":
             blur_method, side_ratio, interpolation = param
-            blurred = self.low_res_augmentation(np.array(sample), side_ratio, interpolation)
+            blurred = self.low_res_augmentation(
+                np.array(sample), side_ratio, interpolation
+            )
         else:
-            raise ValueError('not a correct blur')
+            raise ValueError("not a correct blur")
 
         sample = Image.fromarray(blurred.astype(np.uint8))
 
@@ -267,9 +294,19 @@ class BlurAugmenter():
         # resize the image to a small size and enlarge it back
         img_shape = img.shape
         small_side = int(side_ratio * img_shape[0])
-        small_img = cv2.resize(img, (small_side, small_side), interpolation=interpolation)
-        interpolation = np.random.choice([cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_AREA, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4])
-        aug_img = cv2.resize(small_img, (img_shape[1], img_shape[0]), interpolation=interpolation)
+        small_img = cv2.resize(
+            img, (small_side, small_side), interpolation=interpolation
+        )
+        interpolation = np.random.choice(
+            [
+                cv2.INTER_NEAREST,
+                cv2.INTER_LINEAR,
+                cv2.INTER_AREA,
+                cv2.INTER_CUBIC,
+                cv2.INTER_LANCZOS4,
+            ]
+        )
+        aug_img = cv2.resize(
+            small_img, (img_shape[1], img_shape[0]), interpolation=interpolation
+        )
         return aug_img
-
-

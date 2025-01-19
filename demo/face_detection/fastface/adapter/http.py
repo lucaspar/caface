@@ -12,7 +12,7 @@ class HttpAdapter:
         file_name: str = None,
         url: str = None,
         extract: bool = False,
-        **kwargs
+        **kwargs,
     ):
         # TODO check if file name format is matched with downloaded file
 
@@ -21,11 +21,9 @@ class HttpAdapter:
         file_name = url.split("/")[-1] if file_name is None else file_name
         res = requests.get(url)
 
-        assert (
-            res.status_code == 200
-        ), "wrong status code \
-            recived:{} with response:{}".format(
-            res.status_code, res.content
+        assert res.status_code == 200, (
+            "wrong status code \
+            recived:{} with response:{}".format(res.status_code, res.content)
         )
 
         file_path = os.path.join(dest_path, file_name)
